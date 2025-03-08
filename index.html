@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Weather App</title>
+    <style>
+       
+        video {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            z-index: -1;
+        }
+
+        
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            color: rgb(210, 207, 17);
+        }
+
+        .search-box {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 30px;
+        }
+
+        input {
+            flex: 1;
+            padding: 15px;
+            border: none;
+            border-radius: 30px;
+            font-size: 16px;
+            outline: none;
+        }
+
+        button {
+            padding: 15px 30px;
+            border: none;
+            border-radius: 30px;
+            background: #ebfffc;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        button:hover {
+            background: #d4f5f0;
+        }
+
+        .weather-card {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 20px;
+            border-radius: 15px;
+            text-align: center;
+            display: none;
+        }
+
+        .weather-icon {
+            width: 100px;
+            margin: 20px 0;
+        }
+
+        .temp {
+            font-size: 48px;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        .city {
+            font-size: 32px;
+            margin-bottom: 20px;
+        }
+
+        .details {
+            display: flex;
+            justify-content: space-around;
+            margin-top: 30px;
+        }
+
+        .col {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .error {
+            color: #ff4d4d;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 20px;
+            display: none;
+        }
+    </style>
+</head>
+<video class="background-video" autoplay loop muted>
+    <source src="855505-hd_1920_1080_25fps.mp4" type="video/mp4">
+    Your browser does not support the video tag.
+</video>
+
+<body>
+    <div class="container">
+        <h1>Weather App</h1>
+        <div class="search-box">
+            <input type="text" placeholder="Enter city name" id="cityInput">
+            <button onclick="getWeather()">Search</button>
+        </div>
+
+        <div class="weather-card" id="weatherCard">
+            <h2 class="city" id="cityName"></h2>
+            <img class="weather-icon" id="weatherIcon" src="" alt="Weather Icon">
+            <div class="temp" id="temperature"></div>
+            <div class="condition" id="condition"></div>
+            
+            <div class="details">
+                <div class="col">
+                    <span>💧</span>
+                    <div>
+                        <p id="humidity"></p>
+                        <p>Humidity</p>
+                    </div>
+                </div>
+                <div class="col">
+                    <span>🌬️</span>
+                    <div>
+                        <p id="wind"></p>
+                        <p>Wind Speed</p>
+                    </div>
+                </div>
+                <div class="col">
+                    <span>☁️</span>
+                    <div>
+                        <p id="airQuality"></p>
+                        <p>Air Quality</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="error" id="errorMessage">
+            City not found! Please try again.
+        </div>
+    </div>
+
+    <script>
+        async function getWeather() {
+            const cityInput = document.getElementById('cityInput');
+            const cityName = cityInput.value;
+            const weatherCard = document.getElementById('weatherCard');
+            const errorMessage = document.getElementById('errorMessage');
+
+            if (!cityName) return;
+
+            try {
+                const response = await fetch(
+                    `http://api.weatherapi.com/v1/current.json?key=26fa6dda045943fab4a140615252801&q=${cityName}&aqi=yes`
+                );
+                
+                if (!response.ok) {
+                    throw new Error('City not found');
+                }
+
+                const data = await response.json();
+
+                // Update weather information
+                document.getElementById('cityName').textContent = `${data.location.name}, ${data.location.country}`;
+                document.getElementById('temperature').textContent = `${data.current.temp_c}°C`;
+                document.getElementById('condition').textContent = data.current.condition.text;
+                document.getElementById('weatherIcon').src = data.current.condition.icon;
+                document.getElementById('humidity').textContent = `${data.current.humidity}%`;
+                document.getElementById('wind').textContent = `${data.current.wind_kph} km/h`;
+                document.getElementById('airQuality').textContent = data.current.air_quality['pm2_5'].toFixed(1);
+
+                weatherCard.style.display = 'block';
+                errorMessage.style.display = 'none';
+                cityInput.value = '';
+            } catch (error) {
+                weatherCard.style.display = 'none';
+                errorMessage.style.display = 'block';
+                console.error('Error fetching weather data:', error);
+            }
+        }
+
+        // Allow Enter key to trigger search
+        document.getElementById('cityInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                getWeather();
+            }
+        });
+    </script>
+</body>
+</html>
